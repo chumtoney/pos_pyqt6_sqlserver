@@ -1,4 +1,4 @@
-from pyqt6 import Flask, render_template_string, request, redirect, url_for, flash, session
+from flask import Flask, render_template_string, request, redirect, url_for, flash, session
 
 app = Flask(__name__)
 app.secret_key = 'pos_secret_key_999'
@@ -168,7 +168,7 @@ HTML_LAYOUT = """
                 <tr>
                     <td>{{p.id}}</td>
                     <td><strong>{{p.name}}</strong></td>
-                    <td style="color:#28a745; font-weight:bold;">${{"%.2f"|format(p.price)}}</td>
+                    <td style="color:#28a745; font-weight:bold;">${{p.price}}</td>
                     <td>{{p.stock}} ដើម/កំប៉ុង</td>
                     <td><span style="background:#25252f; padding:4px 8px; border-radius:4px;">{{p.category}}</span></td>
                     <td>
@@ -186,7 +186,7 @@ HTML_LAYOUT = """
                 <tr>
                     <td>{{p.id}}</td>
                     <td><strong>{{p.name}}</strong></td>
-                    <td style="color:#28a745;">${{"%.2f"|format(p.price)}}</td>
+                    <td style="color:#28a745;">${{p.price}}</td>
                     <td>{{p.stock}}</td>
                     <td><button class="btn" style="padding: 5px 10px; font-size:13px;">🛒 លក់ចេញ (Sell)</button></td>
                 </tr>
@@ -197,7 +197,7 @@ HTML_LAYOUT = """
                 {% for h in list_data %}
                 <tr>
                     <td>#000{{h.sale_id}}</td>
-                    <td style="color:#28a745; font-weight:bold;">${{"%.2f"|format(h.total)}}</td>
+                    <td style="color:#28a745; font-weight:bold;">${{h.total}}</td>
                     <td style="color:#aaa;">{{h.date}}</td>
                 </tr>
                 {% endfor %}
