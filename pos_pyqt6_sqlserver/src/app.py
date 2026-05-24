@@ -52,14 +52,14 @@ def login():
     </head>
     <body>
         <div class="login-box">
-            <h2>🔐 ប្រព័ន្ធគ្រប់គ្រង POS</h2>
+            <h2>🔐POS SYSTEM</h2>
             {% with messages = get_flashed_messages() %}
                 {% if messages %}{% for m in messages %}<p class="error">{{m}}</p>{% endfor %}{% endif %}
             {% endwith %}
             <form method="POST">
-                <input type="text" name="username" placeholder="ឈ្មោះអ្នកប្រើប្រាស់ (admin)" required>
-                <input type="password" name="password" placeholder="លេខសម្ងាត់ (1234)" required>
-                <button type="submit">ចូលប្រើប្រាស់</button>
+                <input type="text" name="username" placeholder="Enter your username" required>
+                <input type="password" name="password" placeholder="Enter your password" required>
+                <button type="submit">Login</button>
             </form>
         </div>
     </body>
