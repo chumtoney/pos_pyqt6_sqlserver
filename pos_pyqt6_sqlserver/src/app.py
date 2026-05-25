@@ -71,19 +71,37 @@ def products_page():
     if 'user' not in session: return redirect(url_for('login'))
     global PRODUCTS_DB
     
-    if request.method == 'POST' and 'add_product' in request.form:
-        name = request.form.get('name')
-        price = float(request.form.get('price'))
-        stock = int(request.form.get('stock'))
-        category = request.form.get('category')
-        new_id = max([p['id'] for p in PRODUCTS_DB]) + 1 if PRODUCTS_DB else 1
-        PRODUCTS_DB.append({"id": new_id, "name": name, "price": price, "stock": stock, "category": category})
-        return redirect(url_for('products_page'))
-    
-    if request.method == 'POST' and 'delete_id' in request.form:
-        del_id = int(request.form.get('delete_id'))
-        PRODUCTS_DB = [p for p in PRODUCTS_DB if p['id'] != del_id]
-        return redirect(url_for('products_page'))
+    if request.method == 'POST':
+        # មុខងារ៖ បន្ថែមផលិតផលថ្មី (Save)
+        if 'add_product' in request.form:
+            name = request.form.get('name')
+            price = float(request.form.get('price'))
+            stock = int(request.form.get('stock'))
+            category = request.form.get('category')
+            new_id = max([p['id'] for p in PRODUCTS_DB]) + 1 if PRODUCTS_DB else 1
+            PRODUCTS_DB.append({"id": new_id, "name": name, "price": price, "stock": stock, "category": category})
+            flash("🎨 បន្ថែមទំនិញថ្មីបានជោគជ័យ!", "success")
+            return redirect(url_for('products_page'))
+        
+        # មុខងារ៖ កែប្រែទិន្នន័យផលិតផល (Update)
+        elif 'update_product' in request.form:
+            p_id = int(request.form.get('id'))
+            for p in PRODUCTS_DB:
+                if p['id'] == p_id:
+                    p['name'] = request.form.get('name')
+                    p['price'] = float(request.form.get('price'))
+                    p['stock'] = int(request.form.get('stock'))
+                    p['category'] = request.form.get('category')
+                    break
+            flash("📝 ធ្វើបច្ចុប្បន្នភាពទំនិញរួចរាល់!", "success")
+            return redirect(url_for('products_page'))
+        
+        # មុខងារ៖ លុបផលិតផល (Delete)
+        elif 'delete_id' in request.form:
+            del_id = int(request.form.get('delete_id'))
+            PRODUCTS_DB = [p for p in PRODUCTS_DB if p['id'] != del_id]
+            flash("🗑️ លុបទំនិញចេញពីប្រព័ន្ធរួចរាល់!", "success")
+            return redirect(url_for('products_page'))
 
     return render_template_string(HTML_LAYOUT, active_tab="products", list_data=PRODUCTS_DB)
 
@@ -117,17 +135,61 @@ HTML_LAYOUT = """
         .tabs a { color: #aaa; text-decoration: none; padding: 12px 25px; margin-right: 5px; background: #25252f; border-radius: 6px 6px 0 0; display: inline-block; transition: 0.3s; }
         .tabs a.active { color: #fff; background: #007bff; font-weight: bold; }
         .tabs a:hover { background: #3e3e4f; color: white; }
-        .container { padding: 30px; max-width: 1100px; margin: 0 auto; }
+        .container { padding: 30px; max-width: 1250px; margin: 0 auto; }
+        
+        /* របារបញ្ចូលទិន្នន័យ - រៀបឱ្យនៅជួរដេកតែមួយ ទោះបីអេក្រង់ពេញ (Full Screen) */
+        .form-inline { 
+            background: #2a2a35; 
+            padding: 15px 20px; 
+            border-radius: 6px; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+            display: flex; 
+            flex-direction: row;
+            flex-wrap: nowrap; 
+            gap: 10px; 
+            align-items: center;
+            overflow-x: auto;
+        }
+        
+        /* កំណត់ទំហំប្រអប់ Inputs ឱ្យរត់សមាមាត្រគ្នា */
+        .form-inline input, .form-inline select { 
+            padding: 10px; 
+            background: #1e1e24; 
+            color: white; 
+            border: 1px solid #444; 
+            border-radius: 4px; 
+            font-size: 14px;
+            flex: 1; 
+            min-width: 120px;
+        }
+        
+        /* ប៊ូតុងរចនាបថរួម */
+        .btn { padding: 10px 18px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; white-space: nowrap; font-size: 14px; }
+        .btn:hover { background: #218838; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        .btn-warning:hover { background: #e0a800; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-info:hover { background: #138496; }
+        .btn-secondary { background: #6c757d; color: white; }
+        
+        /* តារាង */
         table { width: 100%; border-collapse: collapse; background: #2a2a35; margin-top: 20px; border-radius: 6px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         th, td { padding: 14px; text-align: left; border-bottom: 1px solid #3e3e4f; }
         th { background: #25252f; color: #007bff; font-size: 15px; }
         tr:hover { background: #333344; }
-        .form-inline { background: #2a2a35; padding: 20px; border-radius: 6px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        input, select { padding: 10px; margin-right: 12px; background: #1e1e24; color: white; border: 1px solid #444; border-radius: 4px; font-size: 14px; }
-        .btn { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn:hover { background: #218838; }
-        .btn-danger { background: #dc3545; padding: 6px 12px; font-size: 13px; }
-        .btn-danger:hover { background: #c82333; }
+        
+        .alert { padding: 12px; background: #28a745; color: white; border-radius: 4px; margin-bottom: 15px; font-weight: bold; }
+
+        /* ផ្ទាំង Pop-up Modal សម្រាប់កែប្រែទិន្នន័យ */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; }
+        .modal-content { background: #2a2a35; padding: 30px; border-radius: 8px; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .modal-content h3 { margin-top: 0; color: #ffc107; }
+        .modal-content label { display: block; margin-top: 10px; font-size: 14px; color: #aaa; }
+        .modal-content input, .modal-content select { width: 100%; margin-top: 5px; box-sizing: border-box; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -144,6 +206,10 @@ HTML_LAYOUT = """
     </div>
     <div class="container">
         
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}{% for m in messages %}<div class="alert">{{m}}</div>{% endfor %}{% endif %}
+        {% endwith %}
+        
         {% if active_tab == 'products' %}
             <h3 style="color: #007bff; margin-top: 0;">➕ Add Product (បន្ថែមផលិតផលថ្មី)</h3>
             <form class="form-inline" method="POST">
@@ -156,17 +222,16 @@ HTML_LAYOUT = """
                     <option value="Stationary">Stationary</option>
                     <option value="Electronic">Electronic</option>
                 </select>
-                <button type="submit" class="btn">Save</button>
-                <button type="submit" class="btn">Delete</button>
-                <button type="submit" class="btn">Update</button>
-                <button type="submit" class="btn">Refresh</button>
+                
+                <button type="submit" class="btn">💾 Save</button>
+                <button type="button" class="btn btn-info" onclick="window.location.reload();">🔄 Refresh</button>
             </form>
         {% endif %}
         
         <h3 style="color: #007bff;">📋 បញ្ជីទិន្នន័យបង្ហាញលើប្រព័ន្ធ (POS Data)</h3>
         <table>
             {% if active_tab == 'products' %}
-                <tr><th>លេខកូដ (ID)</th><th>ឈ្មោះទំនិញ (Name)</th><th>តម្លៃ (Price)</th><th>ចំនួនស្តុក (Stock)</th><th>ប្រភេទ (Category)</th><th>សកម្មភាព</th></tr>
+                <tr><th>លេខកូដ (ID)</th><th>ឈ្មោះទំនិញ (Name)</th><th>តម្លៃ (Price)</th><th>ចំនួនស្តុក (Stock)</th><th>ប្រភេទ (Category)</th><th style="text-align:center;">សកម្មភាពបញ្ជា</th></tr>
                 {% for p in list_data %}
                 <tr>
                     <td>{{p.id}}</td>
@@ -174,10 +239,13 @@ HTML_LAYOUT = """
                     <td style="color:#28a745; font-weight:bold;">${{p.price}}</td>
                     <td>{{p.stock}} ដើម/កំប៉ុង</td>
                     <td><span style="background:#25252f; padding:4px 8px; border-radius:4px;">{{p.category}}</span></td>
-                    <td>
-                        <form method="POST" style="margin:0;">
+                    <td style="text-align:center; display: flex; justify-content: center; gap: 8px;">
+                        <button class="btn btn-warning" style="padding: 6px 12px; font-size: 13px;" 
+                                onclick="openUpdateModal({{p.id}}, '{{p.name}}', {{p.price}}, {{p.stock}}, '{{p.category}}')">📝 Update</button>
+                        
+                        <form method="POST" style="margin:0;" onsubmit="return confirm('តើអ្នកពិតជាចង់លុបទំនិញ {{p.name}} នេះមែនទេ?');">
                             <input type="hidden" name="delete_id" value="{{p.id}}">
-                            <button type="submit" class="btn btn-danger">លុប</button>
+                            <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size: 13px;">🗑️ Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -207,6 +275,57 @@ HTML_LAYOUT = """
             {% endif %}
         </table>
     </div>
+
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <h3>📝 កែប្រែព័ត៌មានទំនិញ</h3>
+            <form method="POST">
+                <input type="hidden" name="update_product" value="1">
+                <input type="hidden" name="id" id="update_id">
+                
+                <label>ឈ្មោះទំនិញ:</label>
+                <input type="text" name="name" id="update_name" required>
+                
+                <label>តម្លៃ ($):</label>
+                <input type="number" step="0.01" name="price" id="update_price" required>
+                
+                <label>ចំនួនក្នុងស្តុក:</label>
+                <input type="number" name="stock" id="update_stock" required>
+                
+                <label>ប្រភេទផលិតផល:</label>
+                <select name="category" id="update_category">
+                    <option value="None">None</option>
+                    <option value="Stationary">Stationary</option>
+                    <option value="Electronic">Electronic</option>
+                </select>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">បោះបង់</button>
+                    <button type="submit" class="btn btn-success">កែប្រែ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openUpdateModal(id, name, price, stock, category) {
+            document.getElementById('update_id').value = id;
+            document.getElementById('update_name').value = name;
+            document.getElementById('update_price').value = price;
+            document.getElementById('update_stock').value = stock;
+            document.getElementById('update_category').value = category;
+            document.getElementById('updateModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('updateModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            let modal = document.getElementById('updateModal');
+            if (event.target == modal) { modal.style.display = 'none'; }
+        }
+    </script>
 </body>
 </html>
 """
