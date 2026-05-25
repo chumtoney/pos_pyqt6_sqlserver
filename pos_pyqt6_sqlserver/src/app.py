@@ -35,7 +35,7 @@ def login():
             session['user'] = username
             return redirect(url_for('products_page'))
         else:
-            flash("ឈ្មោះអ្នកប្រើប្រាស់ ឬ លេខសម្ងាត់មិនត្រឹមត្រូវទេ!", "error")
+            flash("Invalid username or password!", "error")
     
     return render_template_string("""
     <html>
@@ -58,7 +58,9 @@ def login():
                 {% if messages %}{% for m in messages %}<p class="error">{{m}}</p>{% endfor %}{% endif %}
             {% endwith %}
             <form method="POST">
+                <label>Username</label>
                 <input type="text" name="username" placeholder="Enter your username" required>
+                <label>Password</label>
                 <input type="password" name="password" placeholder="Enter your password" required>
                 <button type="submit">Login</button>
             </form>
