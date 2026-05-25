@@ -52,7 +52,7 @@ def login():
     </head>
     <body>
         <div class="login-box">
-            <h2>🔐POS SYSTEM</h2>
+            <h2>🔐Login System POS</h2>
             {% with messages = get_flashed_messages() %}
                 {% if messages %}{% for m in messages %}<p class="error">{{m}}</p>{% endfor %}{% endif %}
             {% endwith %}
@@ -145,7 +145,7 @@ HTML_LAYOUT = """
     <div class="container">
         
         {% if active_tab == 'products' %}
-            <h3 style="color: #007bff; margin-top: 0;">➕ បន្ថែមផលិតផលថ្មី (Add Product)</h3>
+            <h3 style="color: #007bff; margin-top: 0;">➕ Add Product (បន្ថែមផលិតផលថ្មី)</h3>
             <form class="form-inline" method="POST">
                 <input type="hidden" name="add_product" value="1">
                 <input type="text" name="name" placeholder="ឈ្មោះទំនិញ" required>
@@ -156,7 +156,10 @@ HTML_LAYOUT = """
                     <option value="Stationary">Stationary</option>
                     <option value="Electronic">Electronic</option>
                 </select>
-                <button type="submit" class="btn">រក្សាទុក</button>
+                <button type="submit" class="btn">Save</button>
+                <button type="submit" class="btn">Delete</button>
+                <button type="submit" class="btn">Update</button>
+                <button type="submit" class="btn">Refresh</button>
             </form>
         {% endif %}
         
