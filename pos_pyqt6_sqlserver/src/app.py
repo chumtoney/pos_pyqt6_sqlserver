@@ -369,6 +369,7 @@ HTML_LAYOUT = """
                     <th>ឈ្មោះទំនិញ (Products Name)</th>
                     <th>ទឹកប្រាក់សរុប (Total Amount)</th>
                     <th>កាលបរិច្ឆេទលក់ (Date Time)</th>
+                    <th></th>
                 </tr>
                 {% for h in list_data %}
                 <tr>
@@ -376,6 +377,11 @@ HTML_LAYOUT = """
                     <td style="color:#ffc107; font-weight:500;">{{h.products}}</td>
                     <td style="color:#28a745; font-weight:bold;">${{h.total}}</td>
                     <td style="color:#aaa;">{{h.date}}</td>
+                    <td>
+                        <button class="btn btn-info" style="padding: 6px 12px; font-size:13px;" onclick="viewSaleDetails({{h.sale_id}})">
+                            🕒 View Details
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </table>
