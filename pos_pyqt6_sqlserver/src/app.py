@@ -17,7 +17,6 @@ PRODUCTS_DB = [
     {"id": 16, "name": "Apple", "price": 7.00, "stock": 2, "category": "Stationary"}
 ]
 
-# ចំណុចកែទី១៖ បន្ថែម Key ឈ្មោះ "products" ក្នុងទិន្នន័យគំរូប្រវត្តិលក់
 SALES_HISTORY = [
     {"sale_id": 1, "products": "Pen (x2), USB 16GB (x1)", "total": 21.00, "date": "2026-05-16 14:20"},
     {"sale_id": 2, "products": "Notebook (x2), Banana (x4)", "total": 13.50, "date": "2026-05-24 10:15"}
@@ -123,35 +122,30 @@ def checkout():
     if not cart:
         return jsonify({"success": False, "message": "កន្ត្រកទំនិញទំនេរទទេ!"})
     
-    # ពិនិត្យស្តុកមុនពេលកាត់ទាត់ទិន្នន័យ
     for item in cart:
         for p in PRODUCTS_DB:
             if p['id'] == item['id']:
                 if p['stock'] < item['qty']:
                     return jsonify({"success": False, "message": f"ទំនិញ '{p['name']}' មិនមានស្តុកគ្រប់គ្រាន់ទេ! (នៅសល់ {p['stock']})"})
     
-    # ដំណើរការកាត់ស្តុក គណនាតម្លៃសរុប និងចងក្រងឈ្មោះទំនិញដែលបានទិញ
     total_bill = 0.0
-    product_items_list = [] # បង្កើត List សម្រាប់ចាំទទួលឈ្មោះទំនិញពី Cart
+    product_items_list = []
     
     for item in cart:
         for p in PRODUCTS_DB:
             if p['id'] == item['id']:
-                p['stock'] -= item['qty']  # កាត់ស្តុកចេញ
+                p['stock'] -= item['qty']
                 total_bill += p['price'] * item['qty']
-                # ចំណុចកែទី២៖ ចាប់យកឈ្មោះទំនិញ និងចំនួន (qty) បញ្ចូលទៅក្នុង List
                 product_items_list.append(f"{p['name']} (x{item['qty']})")
     
-    # បំប្លែង List ឈ្មោះទំនិញទៅជា String វែងមួយដោយប្រើសញ្ញាក្បៀស (,) ធៀបគ្នា
     products_string = ", ".join(product_items_list)
     
-    # បន្ថែមចូលទៅក្នុងប្រវត្តិនៃការលក់
     new_sale_id = max([s['sale_id'] for s in SALES_HISTORY]) + 1 if SALES_HISTORY else 1
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
     
     SALES_HISTORY.append({
         "sale_id": new_sale_id,
-        "products": products_string,  # រក្សាទុកខ្សែអក្សរឈ្មោះទំនិញចូល Database
+        "products": products_string,
         "total": round(total_bill, 2),
         "date": now_str
     })
@@ -160,9 +154,31 @@ def checkout():
     return jsonify({"success": True})
 
 
-@app.route('/history')
+@app.route('/history', methods=['GET', 'POST'])
 def history_page():
     if 'user' not in session: return redirect(url_for('login'))
+    global SALES_HISTORY
+
+    if request.method == 'POST':
+        # មុខងារ Update ប្រវត្តិលក់
+        if 'update_history' in request.form:
+            sale_id = int(request.form.get('sale_id'))
+            for h in SALES_HISTORY:
+                if h['sale_id'] == sale_id:
+                    h['products'] = request.form.get('products')
+                    h['total'] = float(request.form.get('total'))
+                    h['date'] = request.form.get('date')
+                    break
+            flash("📝 ធ្វើបច្ចុប្បន្នភាពប្រវត្តិវិក្កយបត្ររួចរាល់!", "success")
+            return redirect(url_for('history_page'))
+
+        # មុខងារ Delete ប្រវត្តិលក់
+        elif 'delete_sale_id' in request.form:
+            del_sale_id = int(request.form.get('delete_sale_id'))
+            SALES_HISTORY = [s for s in SALES_HISTORY if s['sale_id'] != del_sale_id]
+            flash("🗑️ លុបប្រវត្តិវិក្កយបត្រចេញរួចរាល់!", "success")
+            return redirect(url_for('history_page'))
+
     return render_template_string(HTML_LAYOUT, active_tab="history", list_data=SALES_HISTORY)
 
 @app.route('/logout')
@@ -233,7 +249,7 @@ HTML_LAYOUT = """
         .modal-content { background: #2a2a35; padding: 30px; border-radius: 8px; width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
         .modal-content h3 { margin-top: 0; color: #ffc107; }
         .modal-content label { display: block; margin-top: 10px; font-size: 14px; color: #aaa; }
-        .modal-content input, .modal-content select { width: 100%; margin-top: 5px; box-sizing: border-box; }
+        .modal-content input, .modal-content select { width: 100%; margin-top: 5px; box-sizing: border-box; padding: 10px; background: #1e1e24; color: white; border: 1px solid #444; border-radius: 4px; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
         .sales-container { display: flex; gap: 20px; align-items: flex-start; }
@@ -369,7 +385,7 @@ HTML_LAYOUT = """
                     <th>ឈ្មោះទំនិញ (Products Name)</th>
                     <th>ទឹកប្រាក់សរុប (Total Amount)</th>
                     <th>កាលបរិច្ឆេទលក់ (Date Time)</th>
-                    <th></th>
+                    <th style="text-align:center;">សកម្មភាពបញ្ជា</th>
                 </tr>
                 {% for h in list_data %}
                 <tr>
@@ -378,9 +394,20 @@ HTML_LAYOUT = """
                     <td style="color:#28a745; font-weight:bold;">${{h.total}}</td>
                     <td style="color:#aaa;">{{h.date}}</td>
                     <td>
-                        <button class="btn btn-info" style="padding: 6px 12px; font-size:13px;" onclick="viewSaleDetails({{h.sale_id}})">
-                            🕒 View Details
-                        </button>
+                        <div style="display: flex; justify-content: center; gap: 6px;">
+                            <button class="btn btn-info" style="padding: 6px 12px; font-size:13px;" onclick="alert('វិក្កយបត្រ #000{{h.sale_id}}\\nទំនិញ៖ {{h.products}}\\nសរុប៖ ${{h.total}}')">
+                                🕒 View Details
+                            </button>
+                            
+                            <button class="btn btn-warning" style="padding: 6px 12px; font-size:13px;" onclick="openUpdateHistoryModal({{h.sale_id}}, '{{h.products}}', {{h.total}}, '{{h.date}}')">
+                                📝 Update
+                            </button>
+                            
+                            <form method="POST" style="margin:0;" onsubmit="return confirm('តើអ្នកពិតជាចង់លុបវិក្កយបត្រ #000{{h.sale_id}} នេះមែនទេ?');">
+                                <input type="hidden" name="delete_sale_id" value="{{h.sale_id}}">
+                                <button type="submit" class="btn btn-danger" style="padding: 6px 12px; font-size:13px;">🗑️ Delete</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -419,6 +446,30 @@ HTML_LAYOUT = """
         </div>
     </div>
 
+    <div id="updateHistoryModal" class="modal">
+        <div class="modal-content">
+            <h3>📝 កែប្រែវិក្កយបត្រ (Update History)</h3>
+            <form method="POST">
+                <input type="hidden" name="update_history" value="1">
+                <input type="hidden" name="sale_id" id="history_sale_id">
+                
+                <label>ឈ្មោះទំនិញ និងចំនួន:</label>
+                <input type="text" name="products" id="history_products" required>
+                
+                <label>ទឹកប្រាក់សរុប ($):</label>
+                <input type="number" step="0.01" name="total" id="history_total" required>
+                
+                <label>កាលបរិច្ឆេទលក់:</label>
+                <input type="text" name="date" id="history_date" required>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeHistoryModal()">បោះបង់</button>
+                    <button type="submit" class="btn btn-success">រក្សាទុក</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openUpdateModal(id, name, price, stock, category) {
             document.getElementById('update_id').value = id;
@@ -433,9 +484,24 @@ HTML_LAYOUT = """
             document.getElementById('updateModal').style.display = 'none';
         }
 
+        // Function សម្រាប់បើក/បិទ Modal Update History
+        function openUpdateHistoryModal(sale_id, products, total, date) {
+            document.getElementById('history_sale_id').value = sale_id;
+            document.getElementById('history_products').value = products;
+            document.getElementById('history_total').value = total;
+            document.getElementById('history_date').value = date;
+            document.getElementById('updateHistoryModal').style.display = 'flex';
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('updateHistoryModal').style.display = 'none';
+        }
+
         window.onclick = function(event) {
-            let modal = document.getElementById('updateModal');
-            if (event.target == modal) { modal.style.display = 'none'; }
+            let modal1 = document.getElementById('updateModal');
+            let modal2 = document.getElementById('updateHistoryModal');
+            if (event.target == modal1) { modal1.style.display = 'none'; }
+            if (event.target == modal2) { modal2.style.display = 'none'; }
         }
 
         let cart = [];
