@@ -354,7 +354,7 @@ HTML_LAYOUT = """
         {% if active_tab == 'history' %}
             <h3 style="color: #007bff; margin-top: 0;">📜 ប្រវត្តិវិក្កយបត្រលក់ចេញ (Sales History)</h3>
             <table>
-                <tr><th>លេខរៀងវិក្កយបត្រ (Sale ID)</th><th>ទឹកប្រាក់សរុប (Total Amount)</th><th>កាលបរិច្ឆេទលក់ (Date Time)</th></tr>
+                <tr><th>លេខរៀងវិក្កយបត្រ (Sale ID)</th><th>ឈ្មោះទំនិញ ​(Products Name)</th><th>ទឹកប្រាក់សរុប (Total Amount)</th><th>កាលបរិច្ឆេទលក់ (Date Time)</th></tr>
                 {% for h in list_data %}
                 <tr>
                     <td>#000{{h.sale_id}}</td>
