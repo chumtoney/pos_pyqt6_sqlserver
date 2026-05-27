@@ -385,7 +385,7 @@ HTML_LAYOUT = """
                     <th>ឈ្មោះទំនិញ (Products Name)</th>
                     <th>ទឹកប្រាក់សរុប (Total Amount)</th>
                     <th>កាលបរិច្ឆេទលក់ (Date Time)</th>
-                    <th style="text-align:center;">សកម្មភាពបញ្ជា</th>
+                    <th style="text-align:center;">សកម្មភាពបញ្ជា (Functions)</th>
                 </tr>
                 {% for h in list_data %}
                 <tr>
@@ -439,8 +439,8 @@ HTML_LAYOUT = """
                 </select>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">បោះបង់</button>
-                    <button type="submit" class="btn btn-success">កែប្រែ</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Update</button>
                 </div>
             </form>
         </div>
@@ -463,8 +463,8 @@ HTML_LAYOUT = """
                 <input type="text" name="date" id="history_date" required>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeHistoryModal()">បោះបង់</button>
-                    <button type="submit" class="btn btn-success">រក្សាទុក</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeHistoryModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Update</button>
                 </div>
             </form>
         </div>
