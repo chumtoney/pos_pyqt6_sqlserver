@@ -17,9 +17,10 @@ PRODUCTS_DB = [
     {"id": 16, "name": "Apple", "price": 7.00, "stock": 2, "category": "Stationary"}
 ]
 
+# ចំណុចកែទី១៖ បន្ថែម Key ឈ្មោះ "products" ក្នុងទិន្នន័យគំរូប្រវត្តិលក់
 SALES_HISTORY = [
-    {"sale_id": 1, "total": 21.00, "date": "2026-05-16 14:20"},
-    {"sale_id": 2, "total": 13.50, "date": "2026-05-24 10:15"}
+    {"sale_id": 1, "products": "Pen (x2), USB 16GB (x1)", "total": 21.00, "date": "2026-05-16 14:20"},
+    {"sale_id": 2, "products": "Notebook (x2), Banana (x4)", "total": 13.50, "date": "2026-05-24 10:15"}
 ]
 
 # ==========================================
@@ -110,7 +111,7 @@ def sales_page():
     if 'user' not in session: return redirect(url_for('login'))
     return render_template_string(HTML_LAYOUT, active_tab="sales", list_data=PRODUCTS_DB)
 
-# API Route សម្រាប់ទទួលទិន្នន័យCheckout (គិតលុយ) និងកាត់ស្តុក
+
 @app.route('/checkout', methods=['POST'])
 def checkout():
     if 'user' not in session: return jsonify({"success": False, "message": "Unauthorized"}), 401
@@ -129,25 +130,35 @@ def checkout():
                 if p['stock'] < item['qty']:
                     return jsonify({"success": False, "message": f"ទំនិញ '{p['name']}' មិនមានស្តុកគ្រប់គ្រាន់ទេ! (នៅសល់ {p['stock']})"})
     
-    # ដំណើរការកាត់ស្តុក និងគណនាតម្លៃសរុប
+    # ដំណើរការកាត់ស្តុក គណនាតម្លៃសរុប និងចងក្រងឈ្មោះទំនិញដែលបានទិញ
     total_bill = 0.0
+    product_items_list = [] # បង្កើត List សម្រាប់ចាំទទួលឈ្មោះទំនិញពី Cart
+    
     for item in cart:
         for p in PRODUCTS_DB:
             if p['id'] == item['id']:
                 p['stock'] -= item['qty']  # កាត់ស្តុកចេញ
                 total_bill += p['price'] * item['qty']
+                # ចំណុចកែទី២៖ ចាប់យកឈ្មោះទំនិញ និងចំនួន (qty) បញ្ចូលទៅក្នុង List
+                product_items_list.append(f"{p['name']} (x{item['qty']})")
+    
+    # បំប្លែង List ឈ្មោះទំនិញទៅជា String វែងមួយដោយប្រើសញ្ញាក្បៀស (,) ធៀបគ្នា
+    products_string = ", ".join(product_items_list)
     
     # បន្ថែមចូលទៅក្នុងប្រវត្តិនៃការលក់
     new_sale_id = max([s['sale_id'] for s in SALES_HISTORY]) + 1 if SALES_HISTORY else 1
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    
     SALES_HISTORY.append({
         "sale_id": new_sale_id,
+        "products": products_string,  # រក្សាទុកខ្សែអក្សរឈ្មោះទំនិញចូល Database
         "total": round(total_bill, 2),
         "date": now_str
     })
     
     flash(f"🛒 លក់ចេញបានជោគជ័យ! វិក្កយបត្រ #{new_sale_id} សរុប ${round(total_bill, 2)}", "success")
     return jsonify({"success": True})
+
 
 @app.route('/history')
 def history_page():
@@ -225,7 +236,6 @@ HTML_LAYOUT = """
         .modal-content input, .modal-content select { width: 100%; margin-top: 5px; box-sizing: border-box; }
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
-        /* រចនាបថចែកជាពីរជួរលើទំព័រលក់ (Sales Page Split Layout) */
         .sales-container { display: flex; gap: 20px; align-items: flex-start; }
         .products-side { flex: 7; }
         .cart-side { flex: 4; background: #2a2a35; padding: 20px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -354,10 +364,16 @@ HTML_LAYOUT = """
         {% if active_tab == 'history' %}
             <h3 style="color: #007bff; margin-top: 0;">📜 ប្រវត្តិវិក្កយបត្រលក់ចេញ (Sales History)</h3>
             <table>
-                <tr><th>លេខរៀងវិក្កយបត្រ (Sale ID)</th><th>ឈ្មោះទំនិញ ​(Products Name)</th><th>ទឹកប្រាក់សរុប (Total Amount)</th><th>កាលបរិច្ឆេទលក់ (Date Time)</th></tr>
+                <tr>
+                    <th>លេខរៀងវិក្កយបត្រ (Sale ID)</th>
+                    <th>ឈ្មោះទំនិញ (Products Name)</th>
+                    <th>ទឹកប្រាក់សរុប (Total Amount)</th>
+                    <th>កាលបរិច្ឆេទលក់ (Date Time)</th>
+                </tr>
                 {% for h in list_data %}
                 <tr>
                     <td>#000{{h.sale_id}}</td>
+                    <td style="color:#ffc107; font-weight:500;">{{h.products}}</td>
                     <td style="color:#28a745; font-weight:bold;">${{h.total}}</td>
                     <td style="color:#aaa;">{{h.date}}</td>
                 </tr>
@@ -368,7 +384,7 @@ HTML_LAYOUT = """
 
     <div id="updateModal" class="modal">
         <div class="modal-content">
-            <h3>📝 កែប្រែព័ត៌មានទំនិញ</h3>
+            <h3>📝 កែប្រែព័ត៌មានទំនិញ (Update Product)</h3>
             <form method="POST">
                 <input type="hidden" name="update_product" value="1">
                 <input type="hidden" name="id" id="update_id">
@@ -398,7 +414,6 @@ HTML_LAYOUT = """
     </div>
 
     <script>
-        // --- ផ្នែកគ្រប់គ្រង Modal Update ---
         function openUpdateModal(id, name, price, stock, category) {
             document.getElementById('update_id').value = id;
             document.getElementById('update_name').value = name;
@@ -417,7 +432,6 @@ HTML_LAYOUT = """
             if (event.target == modal) { modal.style.display = 'none'; }
         }
 
-        // --- ផ្នែក Logic របស់កន្ត្រកទំនិញ (Cart Front-end) ---
         let cart = [];
 
         function addToCart(id, name, price, maxStock) {
@@ -502,7 +516,6 @@ HTML_LAYOUT = """
 
             if (!confirm("តើអ្នកពិតជាចង់បញ្ចប់ការលក់ និងគិតលុយវិក្កយបត្រនេះមែនទេ?")) return;
 
-            // ផ្ញើទិន្នន័យកន្ត្រកទៅកាន់ Backend Python តាមរយៈ Fetch API (JSON)
             fetch('/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -511,8 +524,8 @@ HTML_LAYOUT = """
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    cart = []; // សម្អាតកន្ត្រកទំនិញលើ Frontend
-                    window.location.href = "/history"; // រុញទៅកាន់ទំព័រប្រវត្តិលក់ដើម្បីមើលវិក្កយបត្រ
+                    cart = [];
+                    window.location.href = "/history";
                 } else {
                     alert("កំហុស៖ " + data.message);
                 }
