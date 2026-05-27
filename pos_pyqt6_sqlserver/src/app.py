@@ -120,13 +120,13 @@ def checkout():
     cart = data.get('cart', [])
     
     if not cart:
-        return jsonify({"success": False, "message": "កន្ត្រកទំនិញទំនេរទទេ!"})
+        return jsonify({"success": False, "message": "Empty Cart!"})
     
     for item in cart:
         for p in PRODUCTS_DB:
             if p['id'] == item['id']:
                 if p['stock'] < item['qty']:
-                    return jsonify({"success": False, "message": f"ទំនិញ '{p['name']}' មិនមានស្តុកគ្រប់គ្រាន់ទេ! (នៅសល់ {p['stock']})"})
+                    return jsonify({"success": False, "message": f"ទំនិញ '{p['name']}' Empty Products! (នៅសល់ {p['stock']})"})
     
     total_bill = 0.0
     product_items_list = []
@@ -276,7 +276,7 @@ HTML_LAYOUT = """
         {% endwith %}
         
         {% if active_tab == 'products' %}
-            <h3 style="color: #007bff; margin-top: 0;">➕ Add Product (បន្ថែមផលិតផលថ្មី)</h3>
+            <h3 style="color: #007bff; margin-top: 0;">➕ Add New Products (បន្ថែមផលិតផលថ្មី)</h3>
             <form class="form-inline" method="POST">
                 <input type="hidden" name="add_product" value="1">
                 <input type="text" name="name" placeholder="ឈ្មោះទំនិញ" required>
@@ -286,6 +286,10 @@ HTML_LAYOUT = """
                     <option value="None">None</option>
                     <option value="Stationary">Stationary</option>
                     <option value="Electronic">Electronic</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Food">Food</option>
+                    <option value="Drink">Drink</option>
+                    <option value="Material">Material</option>
                 </select>
                 
                 <button type="submit" class="btn">💾 Save</button>
@@ -294,13 +298,20 @@ HTML_LAYOUT = """
 
             <h3 style="color: #007bff;">📋 បញ្ជីទិន្នន័យបង្ហាញលើប្រព័ន្ធ (POS Data)</h3>
             <table>
-                <tr><th>លេខកូដ (ID)</th><th>ឈ្មោះទំនិញ (Name)</th><th>តម្លៃ (Price)</th><th>ចំនួនស្តុក (Stock)</th><th>ប្រភេទ (Category)</th><th style="text-align:center;">សកម្មភាពបញ្ជា</th></tr>
+                <tr><th>លេខកូដ (ID)</th>
+                <th>ឈ្មោះទំនិញ (Name)</th>
+                <th>តម្លៃ (Price)</th>
+                <th>ចំនួនស្តុក (Stock)</th>
+                <th>ប្រភេទ (Category)</th>
+                <th style="text-align:center;">សកម្មភាពបញ្ជា (Functions)</th>
+                </tr>
                 {% for p in list_data %}
                 <tr>
+                
                     <td>{{p.id}}</td>
                     <td><strong>{{p.name}}</strong></td>
                     <td style="color:#28a745; font-weight:bold;">${{p.price}}</td>
-                    <td>{{p.stock}} ដើម/កំប៉ុង</td>
+                    <td>{{p.stock}} ដើម/កំប៉ុង/គ្រឿង</td>
                     <td><span style="background:#25252f; padding:4px 8px; border-radius:4px;">{{p.category}}</span></td>
                     <td style="text-align:center; display: flex; justify-content: center; gap: 8px;">
                         <button class="btn btn-warning" style="padding: 6px 12px; font-size: 13px;" 
@@ -329,7 +340,7 @@ HTML_LAYOUT = """
                             <td style="color:#28a745; font-weight:bold;">${{p.price}}</td>
                             <td>
                                 {% if p.stock > 0 %}
-                                    <span style="color:#28a745;">{{p.stock}} ដើម/កំប៉ុង</span>
+                                    <span style="color:#28a745;">{{p.stock}} ដើម/កំប៉ុង/គ្រឿង</span>
                                 {% else %}
                                     <span style="color:#dc3545; font-weight:bold;">អស់ស្តុក</span>
                                 {% endif %}
